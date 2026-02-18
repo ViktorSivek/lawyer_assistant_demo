@@ -17,12 +17,12 @@ Python tools handle deterministic checks (whitespace, enumerations, reference fo
 
 ### Phase 2: Document Parser (`mcp_server/docx_parser.py`)
 Core document parsing — everything else depends on this.
-- [ ] `_detect_heading_level(paragraph)` — detect heading level from style name + XML fallback
-- [ ] `load_document_structure(filepath)` — returns heading tree, paragraph count, flat heading list
-- [ ] `_build_heading_tree(headings)` — stack-based tree builder from flat heading list
-- [ ] `get_section_content(filepath, heading_text)` — full text under a specific heading
-- [ ] `get_all_sections_summary(filepath)` — compact summaries (200 chars + MD5 hash) per section
-- [ ] Manual test with a sample .docx
+- [x] `_detect_heading_level(paragraph)` — detect heading level from style name + XML fallback
+- [x] `load_document_structure(filepath)` — returns heading tree, paragraph count, flat heading list
+- [x] `_build_heading_tree(headings)` — stack-based tree builder from flat heading list
+- [x] `get_section_content(filepath, heading_text)` — full text under a specific heading
+- [x] `get_all_sections_summary(filepath)` — compact summaries (200 chars + MD5 hash) per section
+- [x] Manual test with a sample .docx
 
 ### Phase 3: MCP Server Skeleton (`mcp_server/server.py`)
 - [ ] Create FastMCP server instance
@@ -76,5 +76,5 @@ Most complex deterministic check.
 
 ## Current Status
 
-**Phase:** 1 complete, ready for Phase 2
+**Phase:** 2 complete, ready for Phase 3
 **Last updated:** 2026-02-18
