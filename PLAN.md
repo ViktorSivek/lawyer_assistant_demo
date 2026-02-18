@@ -33,9 +33,9 @@ Core document parsing — everything else depends on this.
 
 ### Phase 4: Whitespace Check (`mcp_server/checks.py`)
 Simplest deterministic check — good first win.
-- [ ] `check_whitespace(filepath)` — double spaces, trailing/leading whitespace, consecutive blanks
-- [ ] Register in server.py
-- [ ] Test with a document containing known whitespace issues
+- [x] `check_whitespace(filepath)` — double spaces, trailing/leading whitespace, consecutive blanks
+- [x] Register in server.py
+- [x] Test with a document containing known whitespace issues
 
 ### Phase 5: Enumeration Check (`mcp_server/checks.py`)
 Most complex deterministic check.

@@ -12,6 +12,7 @@ if _project_root not in sys.path:
 
 from fastmcp import FastMCP
 
+from mcp_server.checks import check_whitespace
 from mcp_server.docx_parser import (
     get_all_sections_summary,
     get_section_content,
@@ -68,6 +69,25 @@ def tool_get_all_sections_summary(filepath: str) -> dict:
     preview, content_hash, paragraph_count).
     """
     return get_all_sections_summary(filepath)
+
+
+# ── check tools ────────────────────────────────────────────────────
+
+
+@mcp.tool
+def tool_check_whitespace(filepath: str) -> dict:
+    """Find whitespace issues in a .docx document.
+
+    Checks for double spaces, trailing/leading whitespace, and
+    consecutive blank paragraphs.
+
+    Args:
+        filepath: Path to the .docx file.
+
+    Returns a dict with: filepath, issue_count, issues (list of
+    type, paragraph_index, section, text, detail).
+    """
+    return check_whitespace(filepath)
 
 
 # ── entrypoint ─────────────────────────────────────────────────────
