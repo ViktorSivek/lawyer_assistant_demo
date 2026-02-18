@@ -25,10 +25,10 @@ Core document parsing — everything else depends on this.
 - [x] Manual test with a sample .docx
 
 ### Phase 3: MCP Server Skeleton (`mcp_server/server.py`)
-- [ ] Create FastMCP server instance
-- [ ] Register the 3 parser tools
-- [ ] Test that server starts and tools are callable
-- [ ] Register with Claude Code (`claude mcp add`)
+- [x] Create FastMCP server instance
+- [x] Register the 3 parser tools
+- [x] Test that server starts and tools are callable
+- [ ] Register with Claude Code (`claude mcp add`) — run manually (see below)
 - [ ] Verify tools appear in Claude Code (`/mcp`)
 
 ### Phase 4: Whitespace Check (`mcp_server/checks.py`)
