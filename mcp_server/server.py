@@ -12,7 +12,7 @@ if _project_root not in sys.path:
 
 from fastmcp import FastMCP
 
-from mcp_server.checks import check_whitespace
+from mcp_server.checks import check_enumerations, check_whitespace
 from mcp_server.docx_parser import (
     get_all_sections_summary,
     get_section_content,
@@ -88,6 +88,22 @@ def tool_check_whitespace(filepath: str) -> dict:
     type, paragraph_index, section, text, detail).
     """
     return check_whitespace(filepath)
+
+
+@mcp.tool
+def tool_check_enumerations(filepath: str) -> dict:
+    """Check enumeration delimiter consistency in a .docx document.
+
+    Detects text-pattern list items: (a)/(b), a)/b), (i)/(ii), etc.
+    Reports runs where non-last items use mixed terminators (e.g. ',' and ';').
+
+    Args:
+        filepath: Path to the .docx file.
+
+    Returns a dict with: filepath, issue_count, issues (list of
+    type, paragraph_index, section, text, detail, terminators).
+    """
+    return check_enumerations(filepath)
 
 
 # ── entrypoint ─────────────────────────────────────────────────────

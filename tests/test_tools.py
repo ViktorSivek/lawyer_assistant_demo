@@ -80,7 +80,6 @@ def test_sections_summary_verbatim_paragraph_overlap():
     assert shared in art9["content"], "Shared paragraph missing from Article 9"
 
 
-@pytest.mark.xfail(reason="Phase 5 (enumerations) not implemented yet")
 def test_enumeration_bad_article_3():
     from mcp_server.checks import check_enumerations  # noqa: WPS433
 
@@ -91,7 +90,6 @@ def test_enumeration_bad_article_3():
     )
 
 
-@pytest.mark.xfail(reason="Phase 5 (enumerations) not implemented yet")
 def test_enumeration_bad_article_8():
     from mcp_server.checks import check_enumerations  # noqa: WPS433
 
@@ -102,12 +100,11 @@ def test_enumeration_bad_article_8():
     )
 
 
-@pytest.mark.xfail(reason="Phase 5 (enumerations) not implemented yet")
 def test_enumeration_good_article_2():
     from mcp_server.checks import check_enumerations  # noqa: WPS433
 
     result = check_enumerations(TEST_DOC_PATH)
-    assert any(
+    assert not any(
         issue.get("section") == "2.1 Rozsah díla"
         for issue in result.get("issues", [])
     )

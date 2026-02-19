@@ -39,13 +39,13 @@ Simplest deterministic check — good first win.
 
 ### Phase 5: Enumeration Check (`mcp_server/checks.py`)
 Most complex deterministic check.
-- [ ] `_get_numPr(paragraph)` — extract numId/ilvl from paragraph XML
-- [ ] `_get_num_format(doc, numId, ilvl)` — get numbering format from definitions
-- [ ] `_detect_text_list_pattern(text)` — regex detection of (a)/(b)/(i)/(ii) patterns
-- [ ] `_check_list_delimiters(items)` — check delimiter consistency + last-item rules
-- [ ] `check_enumerations(filepath)` — main function combining Word-native + text-pattern lists
-- [ ] Register in server.py
-- [ ] Test with document containing known enumeration issues
+- [x] `_get_numPr(paragraph)` — extract numId/ilvl from paragraph XML
+- [x] `_get_num_format(doc, numId, ilvl)` — get numbering format from definitions
+- [x] `_detect_text_list_pattern(text)` — regex detection of (a)/(b)/(i)/(ii) patterns
+- [x] `_check_list_delimiters(items)` — check delimiter consistency + last-item rules
+- [x] `check_enumerations(filepath)` — main function combining Word-native + text-pattern lists
+- [x] Register in server.py
+- [x] Test with document containing known enumeration issues
 
 ### Phase 6: Reference Extraction & Validation (`mcp_server/checks.py`)
 - [ ] `_extract_field_codes(doc)` — walk XML for REF/PAGEREF field codes
@@ -76,5 +76,5 @@ Most complex deterministic check.
 
 ## Current Status
 
-**Phase:** 4 complete, ready for Phase 5
+**Phase:** 5 complete, ready for Phase 6
 **Last updated:** 2026-02-19
