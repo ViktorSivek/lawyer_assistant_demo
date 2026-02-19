@@ -24,6 +24,9 @@ Embedded issues:
     2. Bad list:  Article 3.1 — mixed delimiters (comma/semicolon/none)
     3. Bad list:  Article 8 — last items inconsistent (comma then nothing)
     4. Good list: Příloha 2 — consistent semicolons, period at end
+
+  SIZE:
+    Adds padding articles/paragraphs to reach ~30 pages for stress testing.
 """
 
 import os
@@ -62,6 +65,37 @@ def create_test_document(output_path: str):
     style.font.size = Pt(12)
 
     bm_id = 0  # bookmark counter
+
+    def add_padding_paragraphs(section_title: str, count: int = 6):
+        """Add verbose filler paragraphs to increase document length."""
+        for i in range(count):
+            doc.add_paragraph(
+                f"{section_title} – doplňující ustanovení {i + 1}. "
+                "Strany potvrzují, že veškeré činnosti budou prováděny "
+                "s odbornou péčí, v souladu s právními předpisy a interními "
+                "standardy Objednatele. Tato ustanovení slouží jako obecné "
+                "vymezení povinností a jsou uvedena pro účely testování "
+                "rozsáhlých dokumentů."
+            )
+
+    def add_padding_articles(start: int, end: int):
+        """Add extra articles to increase total pages without new issues."""
+        nonlocal bm_id
+        for number in range(start, end + 1):
+            h = doc.add_heading(f"Článek {number} – Doplňující ujednání", level=1)
+            bm_id += 1
+            add_bookmark(h, f"clanek_{number}", bm_id)
+            doc.add_paragraph(
+                "Strany se dohodly, že toto ustanovení má pouze informativní "
+                "povahu a nezakládá žádná nová práva či povinnosti nad rámec "
+                "této smlouvy."
+            )
+            doc.add_paragraph(
+                "Ustanovení se vykládá v souladu s ostatními částmi smlouvy "
+                "a má zajistit dostatečnou srozumitelnost a přehlednost "
+                "dokumentu."
+            )
+            add_padding_paragraphs(f"Článek {number}", count=4)
 
     # ── TITLE ──────────────────────────────────────────────
     doc.add_heading("Smlouva o dílo č. 2024/001", level=0)
@@ -327,6 +361,9 @@ def create_test_document(output_path: str):
         "Podrobnosti o pojištění jsou uvedeny v příloze č. 5 této smlouvy."
     )
 
+    # ── PADDING ARTICLES (to reach ~30 pages) ─────────────
+    add_padding_articles(11, 18)
+
     # ── PŘÍLOHA 1 ──────────────────────────────────────────
     doc.add_page_break()
     h = doc.add_heading("Příloha č. 1 – Projektová dokumentace", level=1)
@@ -338,6 +375,7 @@ def create_test_document(output_path: str):
         "Projektová dokumentace pro provedení stavebních prací na objektu "
         "Základní školy Příbram specifikuje následující rozsah prací:"
     )
+    add_padding_paragraphs("Příloha č. 1", count=5)
 
     doc.add_heading("1.1 Demoliční práce", level=2)
     doc.add_paragraph(
@@ -391,6 +429,7 @@ def create_test_document(output_path: str):
         "projektovou dokumentací a platnými technickými normami. Zhotovitel "
         "je povinen dodržovat bezpečnostní předpisy dle této přílohy."
     )
+    add_padding_paragraphs("Příloha č. 2", count=5)
 
     # ── PŘÍLOHA 3 ──────────────────────────────────────────
     doc.add_page_break()
@@ -416,6 +455,7 @@ def create_test_document(output_path: str):
         "Zhotovitel je povinen  informovat Objednatele o průběhu prací "
         "minimálně jednou týdně."
     )
+    add_padding_paragraphs("Příloha č. 3", count=6)
 
     # ── save ───────────────────────────────────────────────
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
