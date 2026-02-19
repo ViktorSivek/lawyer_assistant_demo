@@ -1,4 +1,6 @@
+import json
 import os
+import zipfile
 
 import pytest
 
@@ -16,6 +18,51 @@ TEST_DOC_PATH = os.path.join(
     "documents",
     "test_smlouva.docx",
 )
+OUTPUT_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "output",
+)
+
+# Minimal findings fixture used by report tests
+_FINDINGS = {
+    "whitespace": {
+        "issue_count": 1,
+        "issues": [{
+            "type": "double_space",
+            "paragraph_index": 15,
+            "section": "Článek 3 – Cena díla",
+            "text": "Celková cena díla  činí...",
+            "detail": 'Multiple spaces at position 17: "…cena díla  činí…"',
+        }],
+    },
+    "enumerations": {
+        "issue_count": 1,
+        "issues": [{
+            "type": "terminator_inconsistency",
+            "paragraph_index": 18,
+            "section": "3.1 Platební podmínky",
+            "text": "(i) záloha ve výši 30 %...",
+            "detail": "Inconsistent terminators: ,/;/,/y",
+            "terminators": [",", ";", ",", "y"],
+        }],
+    },
+    "references": {
+        "invalid": [{
+            "text": "příloha č. 5",
+            "raw": "příloze č. 5",
+            "type": "příloha",
+            "target": "5",
+            "section": "Článek 10 – Závěrečná ustanovení",
+            "paragraph_index": 63,
+        }],
+        "field_code_violations": [{
+            "text": "článek 4",
+            "type": "článek",
+            "section": "Článek 7 – Smluvní pokuty",
+            "paragraph_index": 42,
+        }],
+    },
+}
 
 
 def _load_whitespace_issues():
@@ -136,3 +183,44 @@ def test_reference_field_code_violations():
 
     result = extract_and_validate_references(TEST_DOC_PATH)
     assert result.get("field_code_violations")
+
+
+# ── Phase 7: report generation ──────────────────────────────────────
+
+
+def test_save_results_markdown(tmp_path):
+    from mcp_server.report import save_results
+
+    out = tmp_path / "report.md"
+    result = save_results(TEST_DOC_PATH, json.dumps(_FINDINGS), str(out), "markdown")
+
+    assert result.get("format") == "markdown"
+    assert result.get("written_bytes", 0) > 0
+    assert out.exists()
+
+    content = out.read_text(encoding="utf-8")
+    assert "test_smlouva.docx" in content
+    assert "Bílé znaky" in content
+    assert "Enumerace" in content
+    assert "Neplatné reference" in content
+    assert "příloha č. 5" in content
+    assert "field codes" in content
+
+
+def test_save_results_docx(tmp_path):
+    from mcp_server.report import save_results
+
+    out = tmp_path / "annotated.docx"
+    result = save_results(TEST_DOC_PATH, json.dumps(_FINDINGS), str(out), "docx")
+
+    assert result.get("format") == "docx"
+    assert result.get("written_bytes", 0) > 0
+    assert out.exists()
+
+    # docx is a ZIP — verify it's valid and contains comments.xml
+    assert zipfile.is_zipfile(str(out))
+    with zipfile.ZipFile(str(out)) as zf:
+        assert "word/comments.xml" in zf.namelist()
+        comments_xml = zf.read("word/comments.xml").decode("utf-8")
+    assert "Legal Analyzer" in comments_xml
+    assert "WHITESPACE" in comments_xml

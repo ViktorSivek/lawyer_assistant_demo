@@ -13,6 +13,7 @@ if _project_root not in sys.path:
 from fastmcp import FastMCP
 
 from mcp_server.checks import check_enumerations, check_whitespace, extract_and_validate_references
+from mcp_server.report import save_results
 from mcp_server.docx_parser import (
     get_all_sections_summary,
     get_section_content,
@@ -122,6 +123,27 @@ def tool_extract_and_validate_references(filepath: str) -> dict:
     field_code_refs, field_code_violations, bookmarks.
     """
     return extract_and_validate_references(filepath)
+
+
+@mcp.tool
+def tool_save_results(
+    filepath: str,
+    findings_json: str,
+    output_path: str,
+    format: str = "markdown",
+) -> dict:
+    """Generate a report from analysis findings.
+
+    Args:
+        filepath:      Original .docx file path.
+        findings_json: JSON string with keys: whitespace, enumerations,
+                       references (results from the check tools).
+        output_path:   Destination file path (.md or .docx).
+        format:        "markdown" (default) or "docx".
+
+    Returns a dict with: output_path, format, written_bytes, summary.
+    """
+    return save_results(filepath, findings_json, output_path, format)
 
 
 # ── entrypoint ─────────────────────────────────────────────────────

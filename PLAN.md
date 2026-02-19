@@ -57,11 +57,11 @@ Most complex deterministic check.
 - [x] Test with document containing cross-references
 
 ### Phase 7: Report Generation (`mcp_server/report.py`)
-- [ ] `_generate_markdown(findings_data)` — structured markdown report by category
-- [ ] `_generate_annotated_docx(filepath, findings_data, output_path)` — add comments to .docx copy
-- [ ] `save_results(filepath, findings_json, output_path, format)` — main tool
-- [ ] Register in server.py
-- [ ] Test both output formats
+- [x] `_generate_markdown(findings_data)` — structured markdown report by category
+- [x] `_generate_annotated_docx(filepath, findings_data, output_path)` — add comments to .docx copy
+- [x] `save_results(filepath, findings_json, output_path, format)` — main tool
+- [x] Register in server.py
+- [x] Test both output formats
 
 ### Phase 8: Integration & Testing
 - [ ] End-to-end test with a real Czech legal document
@@ -76,5 +76,5 @@ Most complex deterministic check.
 
 ## Current Status
 
-**Phase:** 6 complete, ready for Phase 7
+**Phase:** 7 complete, ready for Phase 8
 **Last updated:** 2026-02-19
