@@ -300,3 +300,192 @@ def check_enumerations(filepath: str) -> dict[str, Any]:
         "issue_count": len(result_issues),
         "issues": result_issues,
     }
+
+
+# ── reference extraction & validation ──────────────────────────────
+
+# Text extraction patterns — various Czech grammatical forms
+_RE_CL_ABBR  = re.compile(r'\bčl\.\s*(\d+(?:\.\d+)*)\b')
+_RE_CLANEK   = re.compile(r'\bčlánk\w{0,3}\s+(\d+(?:\.\d+)*)\b', re.IGNORECASE)
+_RE_PRILOHA  = re.compile(r'\bpřílo\w{1,4}\s+č\.\s*(\d+)\b', re.IGNORECASE)
+_RE_PARA_LAW = re.compile(r'§\s*(\d+\w*)\b')
+
+# Heading match patterns for building the valid-target sets
+_RE_H_CLANEK  = re.compile(r'^[Čč]lánek\s+(\d+)\b')
+_RE_H_PRILOHA = re.compile(r'^[Pp]říloha\s+č\.\s*(\d+)\b')
+
+
+def _extract_field_codes(doc) -> list[dict[str, Any]]:
+    """Walk paragraph XML to extract REF/PAGEREF Word field codes.
+
+    Returns list of {instr, display_text, paragraph_index}.
+    """
+    result: list[dict[str, Any]] = []
+
+    for p_idx, para in enumerate(doc.paragraphs):
+        state: str | None = None
+        instr_buf: list[str] = []
+        display_buf: list[str] = []
+
+        for run_el in para._element:
+            if run_el.tag != f"{{{_W}}}r":
+                continue
+            for child in run_el:
+                local = child.tag.split("}")[1] if "}" in child.tag else child.tag
+
+                if local == "fldChar":
+                    fc_type = child.get(f"{{{_W}}}fldCharType")
+                    if fc_type == "begin":
+                        state, instr_buf, display_buf = "instr", [], []
+                    elif fc_type == "separate":
+                        state = "display"
+                    elif fc_type == "end":
+                        instr = "".join(instr_buf).strip()
+                        if instr.upper().lstrip().startswith(("REF ", "PAGEREF ")):
+                            result.append({
+                                "instr": instr,
+                                "display_text": "".join(display_buf).strip(),
+                                "paragraph_index": p_idx,
+                            })
+                        state = None
+                elif local == "instrText" and state == "instr":
+                    instr_buf.append(child.text or "")
+                elif local == "t" and state == "display":
+                    display_buf.append(child.text or "")
+
+    return result
+
+
+def _extract_text_references(paragraphs) -> list[dict[str, Any]]:
+    """Extract Czech legal text references from paragraphs.
+
+    Returns list of {text, raw, type, target, section, paragraph_index}.
+    """
+    result: list[dict[str, Any]] = []
+    current_section: str | None = None
+
+    for idx, para in enumerate(paragraphs):
+        level = _detect_heading_level(para)
+        if level is not None:
+            current_section = para.text.strip()
+            continue
+
+        text = para.text
+        if not text.strip():
+            continue
+
+        def _add(m, ref_type: str, normalized: str, target: str) -> None:
+            result.append({
+                "text": normalized,
+                "raw": m.group(0).strip(),
+                "type": ref_type,
+                "target": target,
+                "section": current_section,
+                "paragraph_index": idx,
+            })
+
+        for m in _RE_CL_ABBR.finditer(text):
+            _add(m, "článek", f"článek {m.group(1)}", m.group(1))
+
+        for m in _RE_CLANEK.finditer(text):
+            _add(m, "článek", f"článek {m.group(1)}", m.group(1))
+
+        for m in _RE_PRILOHA.finditer(text):
+            _add(m, "příloha", f"příloha č. {m.group(1)}", m.group(1))
+
+        for m in _RE_PARA_LAW.finditer(text):
+            _add(m, "§", f"§ {m.group(1)}", m.group(1))
+
+    return result
+
+
+def _get_bookmarks(doc) -> list[str]:
+    """Extract all bookmark names from the document."""
+    bookmarks: list[str] = []
+    for para in doc.paragraphs:
+        for el in para._element.iter(f"{{{_W}}}bookmarkStart"):
+            name = el.get(f"{{{_W}}}name")
+            if name:
+                bookmarks.append(name)
+    return bookmarks
+
+
+def _validate_references(
+    refs: list[dict[str, Any]],
+    headings: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split refs into (valid, invalid) using headings as the target set.
+
+    Only validates 'článek' and 'příloha' refs. § and others pass as valid.
+    """
+    article_nums: set[str] = set()
+    annex_nums: set[str] = set()
+    for h in headings:
+        m = _RE_H_CLANEK.match(h["text"])
+        if m:
+            article_nums.add(m.group(1))
+            continue
+        m = _RE_H_PRILOHA.match(h["text"])
+        if m:
+            annex_nums.add(m.group(1))
+
+    valid: list[dict[str, Any]] = []
+    invalid: list[dict[str, Any]] = []
+
+    for ref in refs:
+        if ref["type"] == "článek":
+            base = ref["target"].split(".")[0]
+            (valid if base in article_nums else invalid).append(ref)
+        elif ref["type"] == "příloha":
+            (valid if ref["target"] in annex_nums else invalid).append(ref)
+        else:
+            valid.append(ref)  # § — external law citations, no validation
+
+    return valid, invalid
+
+
+def extract_and_validate_references(filepath: str) -> dict[str, Any]:
+    """Extract and validate all cross-references in a .docx document.
+
+    Detects Word field codes (REF/PAGEREF) and plain text Czech legal
+    references (čl., článek, příloha č., §).
+
+    Validates article and annex text refs against document headings.
+    All internal text refs (article + annex) are reported as
+    field_code_violations — they should use Word REF fields in a properly
+    formatted legal document.
+
+    Returns:
+      {filepath, all_refs, valid, invalid, field_code_refs,
+       field_code_violations, bookmarks}
+    """
+    if not os.path.isfile(filepath):
+        return {"error": f"File not found: {filepath}"}
+
+    doc = Document(filepath)
+    paragraphs = doc.paragraphs
+
+    headings = [
+        {"level": _detect_heading_level(p), "text": p.text.strip()}
+        for p in paragraphs
+        if _detect_heading_level(p) is not None
+    ]
+
+    field_code_refs = _extract_field_codes(doc)
+    text_refs = _extract_text_references(paragraphs)
+    bookmarks = _get_bookmarks(doc)
+    valid_refs, invalid_refs = _validate_references(text_refs, headings)
+
+    field_code_violations = [
+        r for r in text_refs if r["type"] in ("článek", "příloha")
+    ]
+
+    return {
+        "filepath": filepath,
+        "all_refs": text_refs + [{**r, "type": "field_code"} for r in field_code_refs],
+        "valid": valid_refs,
+        "invalid": invalid_refs,
+        "field_code_refs": field_code_refs,
+        "field_code_violations": field_code_violations,
+        "bookmarks": bookmarks,
+    }

@@ -48,13 +48,13 @@ Most complex deterministic check.
 - [x] Test with document containing known enumeration issues
 
 ### Phase 6: Reference Extraction & Validation (`mcp_server/checks.py`)
-- [ ] `_extract_field_codes(doc)` — walk XML for REF/PAGEREF field codes
-- [ ] `_extract_text_references(doc)` — regex for Czech legal patterns (čl., bod, článek, odstavec, příloha, §)
-- [ ] `_get_bookmarks(doc)` — extract all bookmarks for validation
-- [ ] `_validate_references(refs, bookmarks, headings)` — check targets exist
-- [ ] `extract_and_validate_references(filepath)` — main function combining all above
-- [ ] Register in server.py
-- [ ] Test with document containing cross-references
+- [x] `_extract_field_codes(doc)` — walk XML for REF/PAGEREF field codes
+- [x] `_extract_text_references(doc)` — regex for Czech legal patterns (čl., článek, příloha, §)
+- [x] `_get_bookmarks(doc)` — extract all bookmarks for validation
+- [x] `_validate_references(refs, bookmarks, headings)` — check targets exist
+- [x] `extract_and_validate_references(filepath)` — main function combining all above
+- [x] Register in server.py
+- [x] Test with document containing cross-references
 
 ### Phase 7: Report Generation (`mcp_server/report.py`)
 - [ ] `_generate_markdown(findings_data)` — structured markdown report by category
@@ -76,5 +76,5 @@ Most complex deterministic check.
 
 ## Current Status
 
-**Phase:** 5 complete, ready for Phase 6
+**Phase:** 6 complete, ready for Phase 7
 **Last updated:** 2026-02-19

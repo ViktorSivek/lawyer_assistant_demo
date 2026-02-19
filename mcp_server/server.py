@@ -12,7 +12,7 @@ if _project_root not in sys.path:
 
 from fastmcp import FastMCP
 
-from mcp_server.checks import check_enumerations, check_whitespace
+from mcp_server.checks import check_enumerations, check_whitespace, extract_and_validate_references
 from mcp_server.docx_parser import (
     get_all_sections_summary,
     get_section_content,
@@ -104,6 +104,24 @@ def tool_check_enumerations(filepath: str) -> dict:
     type, paragraph_index, section, text, detail, terminators).
     """
     return check_enumerations(filepath)
+
+
+@mcp.tool
+def tool_extract_and_validate_references(filepath: str) -> dict:
+    """Extract and validate all cross-references in a .docx document.
+
+    Detects Word field codes (REF/PAGEREF) and plain text Czech legal
+    references (čl., článek, příloha č., §). Validates article and annex
+    refs against document headings. Reports internal text refs as
+    field_code_violations (they should use Word REF fields).
+
+    Args:
+        filepath: Path to the .docx file.
+
+    Returns a dict with: filepath, all_refs, valid, invalid,
+    field_code_refs, field_code_violations, bookmarks.
+    """
+    return extract_and_validate_references(filepath)
 
 
 # ── entrypoint ─────────────────────────────────────────────────────
