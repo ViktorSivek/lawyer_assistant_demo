@@ -28,8 +28,8 @@ Core document parsing — everything else depends on this.
 - [x] Create FastMCP server instance
 - [x] Register the 3 parser tools
 - [x] Test that server starts and tools are callable
-- [ ] Register with Claude Code (`claude mcp add`) — run manually (see below)
-- [ ] Verify tools appear in Claude Code (`/mcp`)
+- [x] Register with Claude Code (`claude mcp add`) — run manually (see below)
+- [x] Verify tools appear in Claude Code (`/mcp`)
 
 ### Phase 4: Whitespace Check (`mcp_server/checks.py`)
 Simplest deterministic check — good first win.
@@ -76,5 +76,5 @@ Most complex deterministic check.
 
 ## Current Status
 
-**Phase:** 2 complete, ready for Phase 3
-**Last updated:** 2026-02-18
+**Phase:** 4 complete, ready for Phase 5
+**Last updated:** 2026-02-19
